@@ -2,6 +2,9 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
+//to analyze incoming HTTP requests with URL-encoding
+app.use(express.urlencoded({ extended: true }));
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 
@@ -31,6 +34,11 @@ app.get('/urls/:id', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
+//POST Route to Receive the Form Submission
+app.post("/urls", (req, res) => {
+  console.log(req.body); // Log the POST request body to the console
+  res.send("Ok");
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
