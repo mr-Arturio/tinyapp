@@ -2,6 +2,16 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
+//generate a random short URL ID
+function generateRandomString() {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  while (result.length < 6) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+
 //to analyze incoming HTTP requests with URL-encoding
 app.use(express.urlencoded({ extended: true }));
 
