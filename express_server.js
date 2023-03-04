@@ -44,10 +44,20 @@ app.get('/urls/:id', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-//POST Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok");
+  // Generate a random short URL ID
+  const shortURL = generateRandomString();
+  // Add the new key-value pair to the urlDatabase object
+  urlDatabase[shortURL] = req.body.longURL;
+  // Redirect to the page that shows the new short URL
+  res.redirect(`/urls/${shortURL}`);
+});
+
+// route handler to redirect shortURL to its longURL
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  longURL ? res.redirect(longURL) 
+  : res.status(404).send("Short URL not found");
 });
 
 app.listen(PORT, () => {
