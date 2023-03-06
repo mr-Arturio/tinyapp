@@ -1,6 +1,16 @@
 const express = require('express');
 const app = express();
+const cookieParser = require('cookie-parser');
 const PORT = 8080;
+
+//adding app.use(cookieParser()) before any routes that use cookies, 
+app.use(cookieParser());
+
+//to analyze incoming HTTP requests with URL-encoding(middleware)
+app.use(express.urlencoded({ extended: true }));
+
+// set the view engine to ejs
+app.set('view engine', 'ejs');
 
 //generate a random short URL ID
 function generateRandomString() {
@@ -11,12 +21,6 @@ function generateRandomString() {
   }
   return result;
 }
-
-//to analyze incoming HTTP requests with URL-encoding(middleware)
-app.use(express.urlencoded({ extended: true }));
-
-// set the view engine to ejs
-app.set('view engine', 'ejs');
 
 //short URLs and their corresponding long URLs
 const urlDatabase = {
@@ -29,22 +33,29 @@ app.get('/', (req, res) => {
   res.send('Hello!');
 });
 
-//route to show a list of short URLs
+
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
   res.render('urls_index', templateVars);
 });
 
 //route to show a form for creating a new short URL
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render('urls_new', templateVars);
 });
 
 //show details  for short URL
 app.get('/urls/:id', (req, res) => {
   const templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    longURL: urlDatabase[req.params.id],
+    username: req.cookies["username"]
   };
   res.render('urls_show', templateVars);
 });
