@@ -15,19 +15,24 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <span class="nav-item nav-link">Welcome <%= username ? username : 'Guest' %>!</span>
-        <% if (username) { %>
-          <form method="POST" action="/logout">
-            <button type="submit">Logout</button>
-          </form>
-          <% } else { %>
-            <form method="POST" action="/login">
-              <input type="text" name="username" placeholder="Username">
-              <button type="submit">Login</button>
+        </div>
+        <div class="navbar-nav ml-auto">
+          <span class="nav-item nav-link">Welcome <%= username ? username : 'Guest' %>!</span>
+          <% if (username) { %>
+            <form method="POST" action="/logout">
+              <button type="submit" class="btn btn-light">Logout</button>
             </form>
-            <% } %>
-              </div>
-      </div>
-    </div>
-  </nav>
-</header>
+            <% } else { %>
+              <form method="POST" action="/login" class="form-inline">
+                <div class="input-group">
+                  <input type="text" name="username" class="form-control" placeholder="Username">
+                  <div class="input-group-append">
+                    <button type="submit" class="btn btn-dark">Login</button>
+                  </div>
+                </div>
+              </form>
+              <% } %>
+        </div>
+        </div>
+        </nav>
+        </header>
