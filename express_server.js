@@ -51,9 +51,19 @@ app.get('/urls/:id', (req, res) => {
 
 // create a new short URL and add it to the database
 app.post('/urls', (req, res) => {
+  const longURL = req.body.longURL;
+  // Check if longURL already exists in urlDatabase
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL] === longURL) {
+      //show an error message if exist
+      res.status(400).send('URL already in use');
+      return;
+    }
+  }
+  // If longURL does not already exist, generate a new shortURL and add it to urlDatabase
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-   res.redirect(`/urls/${shortURL}`);
+  urlDatabase[shortURL] = longURL;
+  res.redirect(`/urls/${shortURL}`);
 });
 
 // route handler to redirect shortURL to its longURL
