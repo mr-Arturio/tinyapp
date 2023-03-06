@@ -70,19 +70,17 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-// show the form for editing a URL resource
-app.get('/urls/:id', (req, res) => {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id]
-  };
-  res.render('urls_edit', templateVars);
-});
 
 //route that updates a URL resource
 app.post('/urls/:id', (req, res) => {
   const id = req.params.id;
   const newLongURL = req.body.longURL;
+
+  // Check if newLongURL is empty
+  if (!newLongURL) {
+    return res.status(400).send('No input');
+  }
+
   urlDatabase[id] = newLongURL;
   res.redirect('/urls');
 });
