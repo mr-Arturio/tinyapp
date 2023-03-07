@@ -5,10 +5,8 @@ const PORT = 8080;
 
 //adding app.use(cookieParser()) before any routes that use cookies, 
 app.use(cookieParser());
-
 //to analyze incoming HTTP requests with URL-encoding(middleware)
 app.use(express.urlencoded({ extended: true }));
-
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 
