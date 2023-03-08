@@ -8,16 +8,15 @@ function generateRandomString() {
   return result;
 }
 
-function getUserByEmail(users, email){
-  let existingUser = null;
+ // Check if email already exists in users object
+function getUserByEmail(users, email) {
   for (const userId in users) {
     const user = users[userId];
     if (user.email === email) {
-      existingUser = user;
-      break;
+      return user;
     }
   }
-  return existingUser;
+  return null;
 }
 
 module.exports = { generateRandomString, getUserByEmail };
