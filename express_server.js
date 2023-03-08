@@ -1,8 +1,8 @@
 const express = require('express');
-const app = express();
+const generateRandomString = require('./support')
 const cookieParser = require('cookie-parser');
 const PORT = 8080;
-
+const app = express();
 //adding app.use(cookieParser()) before any routes that use cookies, 
 app.use(cookieParser());
 //to analyze incoming HTTP requests with URL-encoding(middleware)
@@ -10,25 +10,18 @@ app.use(express.urlencoded({ extended: true }));
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 
-//generate a random short URL ID
-function generateRandomString() {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  while (result.length < 6) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-
 //short URLs and their corresponding long URLs
-const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
-};
+const urlDatabase = {};
+//to store all users
+const users = {};
 
-//route to handle the root URL
+// Home page.
 app.get('/', (req, res) => {
-  res.send('Hello!');
+  const userID = req.cookies.user_id;
+  if (!idUser) return res.render('urls_index', { userObject: null });
+
+  const userObject = Object.values(users).find((user) => user.id === userID);
+  res.render("urls_index", { urls: urlDatabase, userObject });
 });
 
 
@@ -112,6 +105,27 @@ app.get('/register', (req, res) => {
   res.render('registrPage', templateVars);
 });
 
+// // registration route handler
+// app.post('/register', (req, res) => {
+//   const { email, password } = req.body;
+//   // Check if email or password are empty
+//   if (!email || !password) {
+//     return res.status(400).send('Please provide an email and password');
+//   }
+
+//   // Check if email already exists in users object
+//   const existingUser = Object.values(users).find(user => user.email === email);
+//   if (existingUser) {
+//     return res.status(400).send('Email already exists');
+//   }
+
+//   // If email does not already exist, generate a new user id and add new user to users object
+//   const id = generateRandomString();
+//   users[id] = { id, email, password };
+//   // set user_id cookie
+//   res.cookie('user_id', id);
+//   res.redirect('/urls');
+// });
 
 //The Login Route
 app.post('/login', (req, res) => {
