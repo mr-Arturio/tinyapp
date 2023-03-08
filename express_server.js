@@ -125,6 +125,13 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
+app.get('/login', (req, res) => {
+  const { user_id } = req.cookies;
+  const user = users[user_id];
+  const templateVars = { user };
+  res.render('login', templateVars);
+});
+
 //The Login Route
 app.post('/login', (req, res) => {
   const email = req.body.email;
@@ -140,7 +147,6 @@ app.post('/login', (req, res) => {
   res.cookie('user_id', user.id);
   res.redire
 });
-
 
 //logout rout
 app.post('/logout', (req, res) => {
