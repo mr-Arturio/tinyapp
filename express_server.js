@@ -107,14 +107,14 @@ app.post('/register', (req, res) => {
   const { email, password } = req.body;
   // Check if email or password are empty
   if (!email || !password) {
-    return res.status(400).send('Please provide an email and password');
+    return res.status(400).send('Email and password fields are required');
   }
 
   // Check if email already exists in users object
   const existingUser = getUserByEmail(users, email)
 
   if (existingUser) {
-    return res.status(400).send('Email already exists');
+    return res.status(400).send('This email is already registered, please use a different email');
   }
 
   // If email does not already exist, generate a new user id and add new user to users object
@@ -131,11 +131,7 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   const userId = req.cookies.user_id;
 
-  // let user;
-  // if (users[userId] && users[userId].email === email && users[userId].password === password) {
-  //   user = users[userId];
-  // }
-const user = getUserByEmail(users, email)
+  const user = getUserByEmail(users, email)
 
   if (!user || user.password !== password) {
     return res.status(403).send('Invalid email or password');
@@ -146,13 +142,11 @@ const user = getUserByEmail(users, email)
 });
 
 
-
 //logout rout
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
