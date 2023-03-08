@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 //short URLs and their corresponding long URLs
-const urlDatabase = {};
+  let urlDatabase = {};
 //to store all users
 const users = {};
 
@@ -151,6 +151,7 @@ app.post('/login', (req, res) => {
 //logout rout
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
+  urlDatabase = {}; // clear the urlDatabase object
   res.redirect('/urls');
 });
 
