@@ -1,5 +1,5 @@
 const express = require('express');
-const { generateRandomString } = require('./support')
+const { generateRandomString, getUserByEmail } = require('./helper')
 const cookieParser = require('cookie-parser');
 const PORT = 8080;
 const app = express();
@@ -16,38 +16,34 @@ const urlDatabase = {};
 //to store all users
 const users = {};
 
-// Home page.
-// app.get('/', (req, res) => {
-//   const userID = req.cookies.user_id;
-//   if (!idUser) return res.render('urls_index', { userObject: null });
-
-//   const userObject = Object.values(users).find((user) => user.id === userID);
-//   res.render("urls_index", { urls: urlDatabase, userObject });
-// });
-
-
 app.get('/urls', (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    user: user
   };
   res.render('urls_index', templateVars);
 });
 
 //route to show a form for creating a new short URL
 app.get('/urls/new', (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
   const templateVars = {
-    username: req.cookies["username"]
+    user: user
   };
   res.render('urls_new', templateVars);
 });
 
 //show details  for short URL
 app.get('/urls/:id', (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    username: req.cookies["username"]
+    user: user
   };
   res.render('urls_show', templateVars);
 });
@@ -100,9 +96,9 @@ app.post('/urls/:id', (req, res) => {
 
 //register with an email address and password field
 app.get('/register', (req, res) => {
-  const templateVars = {
-    username: req.cookies["username"]
-  };
+  const { user_id } = req.cookies;
+  const user = users[user_id];
+  const templateVars = { user };
   res.render('registrPage', templateVars);
 });
 
@@ -115,7 +111,8 @@ app.post('/register', (req, res) => {
   }
 
   // Check if email already exists in users object
-  const existingUser = Object.values(users).find(user => user.email === email);
+  const existingUser = getUserByEmail(users, email)
+
   if (existingUser) {
     return res.status(400).send('Email already exists');
   }
@@ -130,16 +127,29 @@ app.post('/register', (req, res) => {
 
 //The Login Route
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  res.cookie('username', username);
-  res.redirect('/urls');
+  const email = req.body.email;
+  const password = req.body.password;
+  const userId = req.cookies.user_id;
+
+  // let user;
+  // if (users[userId] && users[userId].email === email && users[userId].password === password) {
+  //   user = users[userId];
+  // }
+const user = getUserByEmail(users, email)
+
+  if (!user || user.password !== password) {
+    return res.status(403).send('Invalid email or password');
+  }
+
+  res.cookie('user_id', user.id);
+  res.redire
 });
 
 
 
 //logout rout
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
