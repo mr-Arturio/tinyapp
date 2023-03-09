@@ -44,6 +44,18 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
+//show details  for short URL
+app.get('/urls/:id', (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id],
+    user: user
+  };
+  res.render('urls_show', templateVars);
+});
+
 // create a new short URL and add it to the database
 app.post('/urls', (req, res) => {
   //check if used is not logged in
@@ -108,6 +120,10 @@ app.get('/register', (req, res) => {
 // registration route handler
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
+  // Check if email or password are empty
+  if (!email || !password) {
+    return res.status(400).send('Email and password fields are required');
+  }
 
   // Check if email already exists in users object
   const existingUser = getUserByEmail(users, email);
