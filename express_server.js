@@ -108,10 +108,6 @@ app.get('/register', (req, res) => {
 // registration route handler
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
-  // Check if email or password are empty
-  if (!email || !password) {
-    return res.status(400).send('Email and password fields are required');
-  }
 
   // Check if email already exists in users object
   const existingUser = getUserByEmail(users, email);
