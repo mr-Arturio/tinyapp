@@ -5,6 +5,7 @@
 
 <body>
   <%- include('./partials/_header') %>
+  <% if(user){ %>
   <main style="margin: 1em;">
     <h3>My URLs</h3>
     <table class="table">
@@ -39,6 +40,27 @@
           <% } %>
       </tbody>
     </table>
+    <section class='section'>
+      <div class="box"><a href="/urls/new">Create New URL</a>
+    </section>
+    </div>
+    <<% } else { %>
+  <section class="hero is-light is-fullheight">
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 class="title is-size-1">
+          Greetings!
+        </h1>
+        <h2 class="subtitle is-size-3">
+          To access the list of your saved URLs, you need to be signed in to your account.
+        </h2>
+        <a class="btn btn-primary"" href="/login">
+          Login
+        </a>
+      </div>
+    </div>
+  </section>
+<% } %>
   </main>
   <!-- Bootstrap JS -->
   <%- include('./partials/_bootstrapJS_endPage') %>
