@@ -1,10 +1,13 @@
 const express = require('express');
-const { generateRandomString, getUserByEmail } = require('./helper')
+const {
+  generateRandomString,
+  getUserByEmail,
+} = require('./helper');
 const cookieParser = require('cookie-parser');
 const PORT = 8080;
 const app = express();
 
-//adding app.use(cookieParser()) before any routes that use cookies, 
+//adding app.use(cookieParser()) before any routes that use cookies
 app.use(cookieParser());
 //to analyze incoming HTTP requests with URL-encoding(middleware)
 app.use(express.urlencoded({ extended: true }));
@@ -26,9 +29,14 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+
 //route to show a form for creating a new short URL
 app.get('/urls/new', (req, res) => {
   const userId = req.cookies.user_id;
+  //check whether the user is logged in
+  if (!userId) {
+    return res.redirect('/login');
+  }
   const user = users[userId];
   const templateVars = {
     user: user
@@ -50,8 +58,13 @@ app.get('/urls/:id', (req, res) => {
 
 // create a new short URL and add it to the database
 app.post('/urls', (req, res) => {
-  const longURL = req.body.longURL;
+  //check if used is not logged in
+  const userId = req.cookies.user_id;
+  if (!userId) {
+    return res.status(401).send('Error: You need to be logged in to shorten URLs');
+  }
   // Check if longURL already exists in urlDatabase
+  const longURL = req.body.longURL;
   for (const shortURL in urlDatabase) {
     if (urlDatabase[shortURL] === longURL) {
       //show an error message if exist
@@ -79,17 +92,10 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-
 //route that updates a URL resource
 app.post('/urls/:id', (req, res) => {
   const id = req.params.id;
   const newLongURL = req.body.longURL;
-
-  // Check if newLongURL is empty
-  if (!newLongURL) {
-    return res.status(400).send('No input');
-  }
-
   urlDatabase[id] = newLongURL;
   res.redirect('/urls');
 });
@@ -99,7 +105,12 @@ app.get('/register', (req, res) => {
   const { user_id } = req.cookies;
   const user = users[user_id];
   const templateVars = { user };
-  res.render('registrPage', templateVars);
+  // check if the user is already logged in
+  if (user) {
+    res.redirect('/urls'); // redirect to /urls if user is logged in
+  } else {
+    res.render('registrPage', templateVars); // render login page if user is not logged in
+  }
 });
 
 // registration route handler
@@ -111,7 +122,7 @@ app.post('/register', (req, res) => {
   }
 
   // Check if email already exists in users object
-  const existingUser = getUserByEmail(users, email)
+  const existingUser = getUserByEmail(users, email);
 
   if (existingUser) {
     return res.status(400).send('This email is already registered, please use a different email');
@@ -125,12 +136,17 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
-//route to render the login page with email and password fields. 
+//route to render the login page with email and password fields.
 app.get('/login', (req, res) => {
   const { user_id } = req.cookies;
   const user = users[user_id];
   const templateVars = { user };
-  res.render('login', templateVars);
+  // check if the user is already logged in
+  if (user) {
+    res.redirect('/urls'); // redirect to /urls if user is logged in
+  } else {
+    res.render('login', templateVars); // render login page if user is not logged in
+  }
 });
 
 //The Login Route
@@ -139,12 +155,12 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   const userId = req.cookies.user_id;
 
-  const user = getUserByEmail(users, email)
+  // Check if email already exists in users object
+  const user = getUserByEmail(users, email);
 
   if (!user || user.password !== password) {
     return res.status(403).send('Invalid email or password');
   }
-
   res.cookie('user_id', user.id);
   res.redirect('/urls');
 });
