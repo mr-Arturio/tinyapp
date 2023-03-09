@@ -19,6 +19,10 @@ const urlDatabase = {};
 //to store all users
 const users = {};
 
+app.get('/', (req, res) => {
+  res.redirect('/urls');
+});
+
 app.get('/urls', (req, res) => {
   const userId = req.cookies.user_id;
   const user = users[userId];
