@@ -125,6 +125,7 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
+//route to render the login page with email and password fields. 
 app.get('/login', (req, res) => {
   const { user_id } = req.cookies;
   const user = users[user_id];
@@ -152,7 +153,7 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   urlDatabase = {}; // clear the urlDatabase object
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 app.listen(PORT, () => {
