@@ -44,18 +44,6 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
-//show details  for short URL
-app.get('/urls/:id', (req, res) => {
-  const userId = req.cookies.user_id;
-  const user = users[userId];
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    user: user
-  };
-  res.render('urls_show', templateVars);
-});
-
 // create a new short URL and add it to the database
 app.post('/urls', (req, res) => {
   //check if used is not logged in
@@ -81,8 +69,12 @@ app.post('/urls', (req, res) => {
 // route handler to redirect shortURL to its longURL
 app.get('/u/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
-  longURL ? res.redirect(longURL)
-    : res.status(404).send("Short URL not found");
+  //error message when a user requests a non-existent URL
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    res.status(404).send('Error: Short URL not found');
+  }
 });
 
 //route that removes a URL resource
