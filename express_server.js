@@ -2,6 +2,7 @@ const express = require('express');
 const {
   generateRandomString,
   getUserByEmail,
+  urlsForUser
 } = require('./helper');
 const cookieParser = require('cookie-parser');
 const PORT = 8080;
@@ -28,16 +29,6 @@ const urlDatabase =  {
 //to store all users
 const users = {};
 
-//returns the URLs where the userID is equal to the id of the currently logged-in user
-function urlsForUser(id) {
-  const urls = {};
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      urls[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return urls;
-}
 
 app.get('/', (req, res) => {
   res.redirect('/urls');
@@ -47,7 +38,7 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
   const userId = req.cookies.user_id;
   const user = users[userId];
-  const userUrls = urlsForUser(userId);
+  const userUrls = urlsForUser(userId, urlDatabase) ;
   const templateVars = {
     urls: userUrls,
     user: user
