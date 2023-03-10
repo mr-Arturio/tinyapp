@@ -15,19 +15,41 @@ app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 //short URLs and their corresponding long URLs
-const urlDatabase = {};
+const urlDatabase =  {
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
+};
 //to store all users
 const users = {};
+
+//returns the URLs where the userID is equal to the id of the currently logged-in user
+function urlsForUser(id) {
+  const urls = {};
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      urls[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return urls;
+}
 
 app.get('/', (req, res) => {
   res.redirect('/urls');
 });
 
+//route handler to filter the URLs for the logged-in user
 app.get('/urls', (req, res) => {
   const userId = req.cookies.user_id;
   const user = users[userId];
+  const userUrls = urlsForUser(userId);
   const templateVars = {
-    urls: urlDatabase,
+    urls: userUrls,
     user: user
   };
   res.render('urls_index', templateVars);
@@ -52,9 +74,23 @@ app.get('/urls/new', (req, res) => {
 app.get('/urls/:id', (req, res) => {
   const userId = req.cookies.user_id;
   const user = users[userId];
+  const id = req.params.id;
+  const url = urlDatabase[id];
+
+  //error message to the user if they are not logged in.
+  if (!user) {
+    return res.status(401).send('Error: You need to be logged in to view this URL');
+  }
+
+  //error message to the user if they do not own the URL.
+  if (url.userID !== userId) {
+    res.status(403).send('You do not have permission to view this URL');
+    return;
+  }
+
   const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    id: id,
+    longURL: url.longURL,
     user: user
   };
   res.render('urls_show', templateVars);
@@ -62,15 +98,15 @@ app.get('/urls/:id', (req, res) => {
 
 // create a new short URL and add it to the database
 app.post('/urls', (req, res) => {
-  //check if used is not logged in
-  const userId = req.cookies.user_id;
+    const userId = req.cookies.user_id;
+    //check if user is not logged in
   if (!userId) {
     return res.status(401).send('Error: You need to be logged in to shorten URLs');
   }
   // Check if longURL already exists in urlDatabase
   const longURL = req.body.longURL;
   for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL] === longURL) {
+    if (urlDatabase[shortURL].longURL === longURL) {
       //show an error message if exist
       res.status(400).send('URL already in use');
       return;
@@ -78,13 +114,16 @@ app.post('/urls', (req, res) => {
   }
   // If longURL does not already exist, generate a new shortURL and add it to urlDatabase
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {
+    longURL: longURL,
+    userID: userId
+  };
   res.redirect(`/urls/${shortURL}`);
 });
 
 // route handler to redirect shortURL to its longURL
 app.get('/u/:id', (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.id].longURL;
   //error message when a user requests a non-existent URL
   if (longURL) {
     res.redirect(longURL);
@@ -104,7 +143,7 @@ app.post('/urls/:id/delete', (req, res) => {
 app.post('/urls/:id', (req, res) => {
   const id = req.params.id;
   const newLongURL = req.body.longURL;
-  urlDatabase[id] = newLongURL;
+  urlDatabase[id].longURL = newLongURL;
   res.redirect('/urls');
 });
 
