@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require("bcryptjs");
 const {
   generateRandomString,
   getUserByEmail,
@@ -133,6 +134,11 @@ app.post('/urls/:id/delete', (req, res) => {
     return res.status(401).send('Error: You need to be logged in to delete this URL');
   }
 
+  // Error message to the user if the URL ID does not exist
+  if (!url) {
+    return res.status(404).send('Error: URL not found');
+  }
+  
   // error message to the user if they do not own the URL
   if (url.userID !== userId) {
     res.status(403).send('You do not have permission to delete this URL');
@@ -186,6 +192,7 @@ app.get('/register', (req, res) => {
 // registration route handler
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   // Check if email or password are empty
   if (!email || !password) {
     return res.status(400).send('Email and password fields are required');
@@ -200,7 +207,7 @@ app.post('/register', (req, res) => {
 
   // If email does not already exist, generate a new user id and add new user to users object
   const id = generateRandomString();
-  users[id] = { id, email, password };
+  users[id] = { id, email, password, hashedPassword };
   // set user_id cookie
   res.cookie('user_id', id);
   res.redirect('/urls');
@@ -223,12 +230,12 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const userId = req.cookies.user_id;
+  //const userId = req.cookies.user_id;
 
   // Check if email already exists in users object
   const user = getUserByEmail(users, email);
 
-  if (!user || user.password !== password) {
+  if (!user || !bcrypt.compareSync(password, user.hashedPassword)) {
     return res.status(403).send('Invalid email or password');
   }
   res.cookie('user_id', user.id);
