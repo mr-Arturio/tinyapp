@@ -24,7 +24,7 @@
               <%= id %>
             </td>
             <td>
-              <%= urls[id] %>
+              <%= urls[id].longURL %>
             </td>
             <td>
               <form method="GET" action="/urls/<%= id %>">
@@ -40,11 +40,7 @@
           <% } %>
       </tbody>
     </table>
-    <section class='section'>
-      <div class="box"><a href="/urls/new">Create New URL</a>
-    </section>
-    </div>
-    <<% } else { %>
+      <% } else { %>
   <section class="hero is-light is-fullheight">
     <div class="hero-body">
       <div class="container has-text-centered">
