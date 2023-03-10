@@ -2,7 +2,8 @@ const express = require('express');
 const {
   generateRandomString,
   getUserByEmail,
-  urlsForUser
+  urlsForUser,
+  getUserUrls
 } = require('./helper');
 const cookieParser = require('cookie-parser');
 const PORT = 8080;
@@ -96,12 +97,10 @@ app.post('/urls', (req, res) => {
   }
   // Check if longURL already exists in urlDatabase
   const longURL = req.body.longURL;
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].longURL === longURL) {
-      //show an error message if exist
-      res.status(400).send('URL already in use');
-      return;
-    }
+  const userUrls = getUserUrls(userId, urlDatabase);
+  if (userUrls.some(url => url.longURL === longURL)) {
+    res.status(400).send('Error: URL already in use');
+    return;
   }
   // If longURL does not already exist, generate a new shortURL and add it to urlDatabase
   const shortURL = generateRandomString();
@@ -125,16 +124,49 @@ app.get('/u/:id', (req, res) => {
 
 //route that removes a URL resource
 app.post('/urls/:id/delete', (req, res) => {
+  const userId = req.cookies.user_id;
   const id = req.params.id;
+  const url = urlDatabase[id];
+
+  // error message to the user if they are not logged in
+  if (!userId) {
+    return res.status(401).send('Error: You need to be logged in to delete this URL');
+  }
+
+  // error message to the user if they do not own the URL
+  if (url.userID !== userId) {
+    res.status(403).send('You do not have permission to delete this URL');
+    return;
+  }
+
   delete urlDatabase[id];
   res.redirect('/urls');
 });
 
 //route that updates a URL resource
 app.post('/urls/:id', (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
   const id = req.params.id;
+  const url = urlDatabase[id];
   const newLongURL = req.body.longURL;
-  urlDatabase[id].longURL = newLongURL;
+
+  // error message if URL does not exist
+  if (!url) {
+    return res.status(404).send('Error: URL not found');
+  }
+
+  // error message if user is not logged in
+  if (!user) {
+    return res.status(401).send('Error: You need to be logged in to edit this URL');
+  }
+
+  // error message if user does not own the URL
+  if (url.userID !== userId) {
+    return res.status(403).send('Error: You do not have permission to edit this URL');
+  }
+
+  url.longURL = newLongURL;
   res.redirect('/urls');
 });
 
