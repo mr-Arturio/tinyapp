@@ -19,6 +19,11 @@ function urlsForUser(id, urlDatabase) {
   return urls;
 }
 
+// check for existing short URLs in the database for new users.
+function getUserUrls(userId, database) {
+  return Object.values(database).filter(url => url.userID === userId);
+}
+
 // Check if email already exists in users object
 function getUserByEmail(users, email) {
   for (const userId in users) {
@@ -33,5 +38,6 @@ function getUserByEmail(users, email) {
 module.exports = { 
   generateRandomString, 
   getUserByEmail, 
-  urlsForUser
+  urlsForUser,
+  getUserUrls
 };
