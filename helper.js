@@ -8,7 +8,18 @@ function generateRandomString() {
   return result;
 }
 
- // Check if email already exists in users object
+//returns the URLs where the userID is equal to the id of the currently logged-in user
+function urlsForUser(id, urlDatabase) {
+  const urls = {};
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      urls[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return urls;
+}
+
+// Check if email already exists in users object
 function getUserByEmail(users, email) {
   for (const userId in users) {
     const user = users[userId];
@@ -19,4 +30,8 @@ function getUserByEmail(users, email) {
   return null;
 }
 
-module.exports = { generateRandomString, getUserByEmail };
+module.exports = { 
+  generateRandomString, 
+  getUserByEmail, 
+  urlsForUser
+};
