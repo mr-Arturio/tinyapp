@@ -32,7 +32,7 @@ function getUserByEmail(users, email) {
       return user;
     }
   }
-  return null;
+  return undefined;
 }
 
 module.exports = { 
