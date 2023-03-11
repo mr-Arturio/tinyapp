@@ -1,4 +1,5 @@
 const express = require('express');
+const methodOverride = require('method-override');
 const bcrypt = require("bcryptjs");
 const {
   generateRandomString,
@@ -10,6 +11,8 @@ const cookieSession = require('cookie-session');
 const PORT = 8080;
 const app = express();
 
+// middleware
+app.use(methodOverride('_method'));
 //  middleware cookies
 app.use(cookieSession({
   name: 'session',
@@ -165,13 +168,13 @@ app.post('/urls', (req, res) => {
   const userId = req.session.user_id;
   //check if user is not logged in
   if (!userId) {
-    return res.status(401).send('Error: You need to be logged in to shorten URLs');
+    return res.status(401).send('You need to be logged in to shorten URLs');
   }
   // Check if longURL already exists in urlDatabase
   const longURL = req.body.longURL;
   const userUrls = getUserUrls(userId, urlDatabase);
   if (userUrls.some(url => url.longURL === longURL)) {
-    return res.status(400).send('Error: URL already in use');
+    return res.status(400).send('URL already in use');
   }
   // If longURL does not already exist, generate a new shortURL and add it to urlDatabase
   const shortURL = generateRandomString();
@@ -189,59 +192,57 @@ app.get('/u/:id', (req, res) => {
   if (longURL) {
     res.redirect(longURL);
   } else {
-    res.status(404).send('Error: Short URL not found');
+    res.status(404).send('Short URL not found');
   }
 });
 
 //route that removes a URL resource
-app.post('/urls/:id/delete', (req, res) => {
+app.delete('/urls/:id/delete', (req, res) => {
   const userId = req.session.user_id;
   const id = req.params.id;
   const url = urlDatabase[id];
 
   // error message to the user if they are not logged in
   if (!userId) {
-    return res.status(401).send('Error: You need to be logged in to delete this URL');
+    return res.status(401).send('You need to be logged in to delete this URL');
   }
 
   // Error message to the user if the URL ID does not exist
   if (!url) {
-    return res.status(404).send('Error: URL not found');
+    return res.status(404).send('URL not found');
   }
 
   // error message to the user if they do not own the URL
   if (url.userID !== userId) {
-    res.status(403).send('You do not have permission to delete this URL');
-    return;
-  }
+    return res.status(403).send('You do not have permission to delete this URL');
+      }
 
   delete urlDatabase[id];
   res.redirect('/urls');
 });
 
 //route that updates a URL resource
-app.post('/urls/:id', (req, res) => {
+app.put('/urls/:id', (req, res) => {
   const user = users[req.session.user_id];
   const id = req.params.id;
   const url = urlDatabase[id];
-  const newLongURL = req.body.longURL;
-
+  
   // error message if URL does not exist
   if (!url) {
-    return res.status(404).send('Error: URL not found');
+    return res.status(404).send('URL not found');
   }
 
   // error message if user is not logged in
   if (!user) {
-    return res.status(401).send('Error: You need to be logged in to edit this URL');
+    return res.status(401).send('You need to be logged in to edit this URL');
   }
 
   // error message if user does not own the URL
   if (url.userID !== req.session.user_id) {
-    return res.status(403).send('Error: You do not have permission to edit this URL');
+    return res.status(403).send('You do not have permission to edit this URL');
   }
 
-  url.longURL = newLongURL;
+  url.longURL = req.body.longURL;
   res.redirect('/urls');
 });
 
