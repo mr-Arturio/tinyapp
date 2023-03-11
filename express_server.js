@@ -6,12 +6,15 @@ const {
   urlsForUser,
   getUserUrls
 } = require('./helper');
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const PORT = 8080;
 const app = express();
 
-//adding app.use(cookieParser()) before any routes that use cookies
-app.use(cookieParser());
+//  middleware cookies
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+}));
 //to analyze incoming HTTP requests with URL-encoding(middleware)
 app.use(express.urlencoded({ extended: true }));
 // set the view engine to ejs
@@ -38,8 +41,7 @@ app.get('/', (req, res) => {
 
 //register with an email address and password field
 app.get('/register', (req, res) => {
-  const { user_id } = req.cookies;
-  const user = users[user_id];
+  const user = users[req.session.user_id];
   const templateVars = { user };
   // check if the user is already logged in
   if (user) {
@@ -69,14 +71,13 @@ app.post('/register', (req, res) => {
   const id = generateRandomString();
   users[id] = { id, email, hashedPassword };
   // set user_id cookie
-  res.cookie('user_id', id);
+  req.session.user_id = id;
   res.redirect('/urls');
 });
 
 //route to render the login page with email and password fields.
 app.get('/login', (req, res) => {
-  const { user_id } = req.cookies;
-  const user = users[user_id];
+  const user = users[req.session.user_id];
   const templateVars = { user };
   // check if the user is already logged in
   if (user) {
@@ -98,21 +99,20 @@ app.post('/login', (req, res) => {
   if (!user || !bcrypt.compareSync(password, user.hashedPassword)) {
     return res.status(403).send('Invalid email or password');
   }
-  res.cookie('user_id', user.id);
+  req.session.user_id = user.id;
   res.redirect('/urls');
 });
 
 //logout rout
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
-  res.redirect('/login');
+  req.session = null;
+  res.redirect('/');
 });
 
 //route handler to filter the URLs for the logged-in user
 app.get('/urls', (req, res) => {
-  const userId = req.cookies.user_id;
-  const user = users[userId];
-  const userUrls = urlsForUser(userId, urlDatabase);
+  const user = users[req.session.user_id];
+  const userUrls = urlsForUser(req.session.user_id, urlDatabase);
   const templateVars = {
     urls: userUrls,
     user: user
@@ -123,12 +123,12 @@ app.get('/urls', (req, res) => {
 
 //route to show a form for creating a new short URL
 app.get('/urls/new', (req, res) => {
-  const userId = req.cookies.user_id;
+  const user = users[req.session.user_id];
   //check whether the user is logged in
-  if (!userId) {
+  if (!user) {
     return res.redirect('/login');
   }
-  const user = users[userId];
+
   const templateVars = {
     user: user
   };
@@ -137,8 +137,7 @@ app.get('/urls/new', (req, res) => {
 
 //show details  for short URL
 app.get('/urls/:id', (req, res) => {
-  const userId = req.cookies.user_id;
-  const user = users[userId];
+  const user = users[req.session.user_id];
   const id = req.params.id;
   const url = urlDatabase[id];
 
@@ -148,7 +147,7 @@ app.get('/urls/:id', (req, res) => {
   }
 
   //error message to the user if they do not own the URL.
-  if (url.userID !== userId) {
+  if (url.userID !== req.session.user_id) {
     res.status(403).send('You do not have permission to view this URL');
     return;
   }
@@ -163,7 +162,7 @@ app.get('/urls/:id', (req, res) => {
 
 // create a new short URL and add it to the database
 app.post('/urls', (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   //check if user is not logged in
   if (!userId) {
     return res.status(401).send('Error: You need to be logged in to shorten URLs');
@@ -196,7 +195,7 @@ app.get('/u/:id', (req, res) => {
 
 //route that removes a URL resource
 app.post('/urls/:id/delete', (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   const id = req.params.id;
   const url = urlDatabase[id];
 
@@ -222,8 +221,7 @@ app.post('/urls/:id/delete', (req, res) => {
 
 //route that updates a URL resource
 app.post('/urls/:id', (req, res) => {
-  const userId = req.cookies.user_id;
-  const user = users[userId];
+  const user = users[req.session.user_id];
   const id = req.params.id;
   const url = urlDatabase[id];
   const newLongURL = req.body.longURL;
@@ -239,7 +237,7 @@ app.post('/urls/:id', (req, res) => {
   }
 
   // error message if user does not own the URL
-  if (url.userID !== userId) {
+  if (url.userID !== req.session.user_id) {
     return res.status(403).send('Error: You do not have permission to edit this URL');
   }
 
