@@ -24,16 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 //short URLs and their corresponding long URLs
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-};
+const urlDatabase = {};
 //to store all users
 const users = {};
 
@@ -215,7 +206,7 @@ app.delete('/urls/:id/delete', (req, res) => {
   // error message to the user if they do not own the URL
   if (url.userID !== userId) {
     return res.status(403).send('You do not have permission to delete this URL');
-      }
+  }
 
   delete urlDatabase[id];
   res.redirect('/urls');
@@ -226,7 +217,7 @@ app.put('/urls/:id', (req, res) => {
   const user = users[req.session.user_id];
   const id = req.params.id;
   const url = urlDatabase[id];
-  
+
   // error message if URL does not exist
   if (!url) {
     return res.status(404).send('URL not found');
